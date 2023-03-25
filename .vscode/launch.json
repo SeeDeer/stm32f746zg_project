@@ -1,0 +1,21 @@
+{
+    // 使用 IntelliSense 了解相关属性。 
+    // 悬停以查看现有属性的描述。
+    // 欲了解更多信息，请访问: https://go.microsoft.com/fwlink/?linkid=830387
+    // device, 使用J-link GDB Server时必须有；其他GBD Server时可选（有可能帮助自动选择SVD文件）。支持的设备见 https://www.segger.com/downloads/supported-devices.php
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Cortex Debug",
+            "cwd": "${workspaceFolder}",
+            "executable": "./Build/STM32F746ZG_APP.elf",
+            "request": "launch",
+            "type": "cortex-debug",
+            "device":"STM32F746ZG",        
+            "runToEntryPoint": "main",
+            "svdFile": "./Build/Linker/STM32F7x6.svd",
+            "servertype": "jlink",
+            // "preLaunchTask": "build"
+        }
+    ]
+}
