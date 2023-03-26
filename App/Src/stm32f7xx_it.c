@@ -15,7 +15,6 @@
   *
   ******************************************************************************
   */
-/* USER CODE END Header */
 
 /* Includes ------------------------------------------------------------------*/
 
@@ -94,12 +93,14 @@ void DebugMon_Handler(void)
 
 }
 
+#if 0 /* 方法1：UCOSIII 启动后会进HardFault */
+#include "os.h"
 /**
   * @brief This function handles Pendable request for system service.
   */
 void PendSV_Handler(void)
 {
-	
+	OS_CPU_PendSVHandler();
 }
 
 /**
@@ -107,8 +108,11 @@ void PendSV_Handler(void)
   */
 void SysTick_Handler(void)
 {
-
+  OS_CPU_SysTickHandler();
 }
+#else
+/* 方法2：运行正常，直接修改启动文件中的异常服务函数名称 OS_CPU_PendSVHandler OS_CPU_SysTickHandler */
+#endif
 
 /******************************************************************************/
 /* STM32F7xx Peripheral Interrupt Handlers                                    */

@@ -15,6 +15,8 @@
 
 #include "stm32f7xx_hal_cortex.h"
 
+#include "os.h"
+
 #define LD1_GPIO_PIN 		LL_GPIO_PIN_0
 #define LD1_GPIO_PORT 		GPIOB
 #define LD2_GPIO_PIN 		LL_GPIO_PIN_7
@@ -26,7 +28,7 @@
 static void SystemClock_Config(void);
 static void Board_Led_Init(void);
 extern uint32_t SystemCoreClock;
-
+extern void UCOS_III_Init(void);
 
 /**
  * @brief  CPU L1-Cache enable.
@@ -42,14 +44,42 @@ static void CPU_CACHE_Enable(void)
 	SCB_EnableDCache();
 }
 
-
-static void Delay_Ms(unsigned long ms)
+void Test1_Task_Func(void *p_arg)
 {
-	while (ms--)
-	{
-		for (int i = 0; i < (SystemCoreClock/9000); i++)
-		{}
-	}
+    (void)p_arg;
+    OS_ERR os_err;
+
+    while(1)
+    {
+		LL_GPIO_TogglePin(LD1_GPIO_PORT,LD1_GPIO_PIN);
+        OSTimeDly(100,OS_OPT_TIME_DLY,&os_err);
+    }
+}
+
+void Test2_Task_Func(void *p_arg)
+{
+    (void)p_arg;
+    OS_ERR os_err;
+
+    while(1)
+    {
+
+		LL_GPIO_TogglePin(LD2_GPIO_PORT,LD2_GPIO_PIN);
+        OSTimeDly(100,OS_OPT_TIME_DLY,&os_err);
+    }
+}
+
+void Test3_Task_Func(void *p_arg)
+{
+    (void)p_arg;
+    OS_ERR os_err;
+
+    while(1)
+    {
+
+		LL_GPIO_TogglePin(LD3_GPIO_PORT,LD3_GPIO_PIN);
+        OSTimeDly(100,OS_OPT_TIME_DLY,&os_err);
+    }
 }
 
 /**
@@ -78,16 +108,7 @@ int main(void)
 	Board_Led_Init();
 	LL_GPIO_SetOutputPin(LD1_GPIO_PORT,LD1_GPIO_PIN);
 
-	/* Infinite loop */
-	while (1)
-	{
-		Delay_Ms(100);
-		LL_GPIO_TogglePin(LD1_GPIO_PORT,LD1_GPIO_PIN);
-		Delay_Ms(100);
-		LL_GPIO_TogglePin(LD2_GPIO_PORT,LD2_GPIO_PIN);
-		Delay_Ms(100);
-		LL_GPIO_TogglePin(LD3_GPIO_PORT,LD3_GPIO_PIN);
-	}
+	UCOS_III_Init();
 }
 
 /**

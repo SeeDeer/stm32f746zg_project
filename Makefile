@@ -27,6 +27,8 @@ OPT = -O0
 # Build path
 BUILD_DIR = Build/Obj
 
+include Middlewares/RTOS/local.mk
+
 ######################################
 # source
 ######################################
@@ -37,13 +39,17 @@ C_SOURCES += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_rcc.c
 C_SOURCES += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_utils.c
 C_SOURCES += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_exti.c
 C_SOURCES += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_usart.c
+C_SOURCES += $(foreach dir, $(LOCAL_SOURCES_DIRS), $(wildcard $(dir)/*.c))
+C_SOURCES += $(LOCAL_C_SOURCES)
 
 # C includes
-C_INCLUDES = -IApp/Include
-C_INCLUDES += -IDrivers/STM32F7xx_HAL_Driver/Inc -IDrivers/CMSIS/Device/ST/STM32F7xx/Include -IDrivers/CMSIS/Include
+C_INCLUDES = App/Include
+C_INCLUDES += Drivers/STM32F7xx_HAL_Driver/Inc Drivers/CMSIS/Device/ST/STM32F7xx/Include Drivers/CMSIS/Include
+C_INCLUDES += $(LOCAL_INCLUDES)
 
 # ASM sources
 ASM_SOURCES = StartCode/gcc/startup_stm32f746xx.s
+ASM_SOURCES += $(LOCAL_ASM_SOURCES)
 
 # AS includes
 AS_INCLUDES =
@@ -107,7 +113,8 @@ C_DEFS += -DUSE_FULL_ASSERT
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
-CFLAGS = $(MCU) $(C_DEFS) $(C_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS = $(MCU) $(C_DEFS) $(OPT) -Wall -fdata-sections -ffunction-sections
+CFLAGS += $(addprefix -I, $(C_INCLUDES))
 
 ifeq ($(DEBUG), 1)
 CFLAGS += -g -gdwarf-2

@@ -36,13 +36,16 @@
 #define    BSP_CPU_MODULE
 #include  <cpu_core.h>
 
+extern CPU_INT32U SystemCoreClock;
 
 /*
 *********************************************************************************************************
 *                                            LOCAL DEFINES
 *********************************************************************************************************
 */
-
+#define  BSP_REG_DWT_CR         (*(CPU_REG32 *)0xE0001000)    // DWT_CTRL的地址
+#define  BSP_REG_DWT_CYCCNT     (*(CPU_REG32 *)0xE0001004)    // DWT_CYCCNT的地址
+#define  BSP_REG_DBGMCU_CR      (*(CPU_REG32 *)0xE0042004)    // 未用到，先忽略
 
 /*
 *********************************************************************************************************
@@ -136,9 +139,11 @@
 #if (CPU_CFG_TS_TMR_EN == DEF_ENABLED)
 void  CPU_TS_TmrInit (void)
 {
-
-    /* $$$$ Insert code to configure & start CPU timestamp timer (see Note #2). */
-
+	CPU_REG_DEMCR |= (1 << 24);		    /* 启用 DWT 外设 */
+	BSP_REG_DWT_CYCCNT = 0u;	        /* DWT CYCCNT 寄存器计数清零 */
+	BSP_REG_DBGMCU_CR |= (1 << 0);      /* 启用 DWT CYCCNT 计数器 */
+	
+	CPU_TS_TmrFreqSet((CPU_TS_TMR_FREQ)SystemCoreClock);
 }
 #endif
 
@@ -222,7 +227,7 @@ CPU_TS_TMR  CPU_TS_TmrRd (void)
     CPU_TS_TMR  ts_tmr_cnts;
 
 
-    ts_tmr_cnts = 0u; /* $$$$ Insert code to return CPU timestamp timer value (see Note #2) */
+    ts_tmr_cnts = (CPU_TS_TMR)BSP_REG_DWT_CYCCNT; /* $$$$ Insert code to return CPU timestamp timer value (see Note #2) */
 
     return (ts_tmr_cnts);
 }
