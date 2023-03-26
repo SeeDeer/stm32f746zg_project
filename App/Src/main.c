@@ -116,7 +116,6 @@ static void SystemClock_Config(void)
 	/* Wait till System clock is ready */
 	while(LL_RCC_GetSysClkSource() != LL_RCC_SYS_CLKSOURCE_STATUS_PLL){}
 
-	// LL_Init1msTick(96000000);
 	LL_SetSystemCoreClock(216000000);
 	LL_RCC_SetUSARTClockSource(LL_RCC_USART1_CLKSOURCE_SYSCLK);
 }
