@@ -1,4 +1,4 @@
-
+#if 0
 #include "os.h"
 #include "os_app_hooks.h"
 #include "stm32f7xx.h"
@@ -123,4 +123,4 @@ static void Start_Task_Func(void *p_arg)
                 (OS_ERR     *)&os_err);
 
 }
-
+#endif

@@ -1,11 +1,3 @@
-/************************************************************************
- * @file: Do not edit
- * @author: xxx
- * @brief: xxx
- * @version: 1.0.0
- * @LastEditTime: 2023-03-26 12:30:34
- * @attention: Do not edit
- *************************************************************************/
 /* ----------------------------------------------------------------------
  * $Date:        5. February 2013
  * $Revision:    V1.02
@@ -71,9 +63,12 @@
 #define osFeature_Semaphore    30      ///< maximum count for \ref osSemaphoreCreate function
 #define osFeature_Wait         1       ///< osWait function: 1=available, 0=not available
 #define osFeature_SysTick      1       ///< osKernelSysTick functions: 1=available, 0=not available
+
+#define osFeature_MaxThreadNum 10     ///< 支持创建的最大线程数量
  
 #include <stdint.h>
 #include <stddef.h>
+#include "os.h"
  
 #ifdef  __cplusplus
 extern "C"
@@ -86,13 +81,13 @@ extern "C"
 /// Priority used for thread control.
 /// \note MUST REMAIN UNCHANGED: \b osPriority shall be consistent in every CMSIS-RTOS.
 typedef enum  {
-  osPriorityIdle          = -3,          ///< priority: idle (lowest)
-  osPriorityLow           = -2,          ///< priority: low
-  osPriorityBelowNormal   = -1,          ///< priority: below normal
-  osPriorityNormal        =  0,          ///< priority: normal (default)
-  osPriorityAboveNormal   = +1,          ///< priority: above normal
-  osPriorityHigh          = +2,          ///< priority: high
-  osPriorityRealtime      = +3,          ///< priority: realtime (highest)
+  osPriorityIdle          = 14,          ///< priority: idle (lowest)
+  osPriorityLow           = 13,          ///< priority: low
+  osPriorityBelowNormal   = 12,          ///< priority: below normal
+  osPriorityNormal        = 11,          ///< priority: normal (default)
+  osPriorityAboveNormal   = 10,          ///< priority: above normal
+  osPriorityHigh          = 9,          ///< priority: high
+  osPriorityRealtime      = 8,          ///< priority: realtime (highest)
   osPriorityError         =  0x84        ///< system cannot determine priority or thread has illegal priority
 } osPriority;
  
@@ -140,7 +135,7 @@ typedef void (*os_ptimer) (void const *argument);
  
 /// Thread ID identifies the thread (pointer to a thread control block).
 /// \note CAN BE CHANGED: \b os_thread_cb is implementation specific in every CMSIS-RTOS.
-typedef struct os_thread_cb *osThreadId;
+typedef struct os_tcb *osThreadId;
  
 /// Timer ID identifies the timer (pointer to a timer control block).
 /// \note CAN BE CHANGED: \b os_timer_cb is implementation specific in every CMSIS-RTOS.
@@ -262,7 +257,9 @@ uint32_t osKernelSysTick (void);
 /// The RTOS kernel system timer frequency in Hz
 /// \note Reflects the system timer setting and is typically defined in a configuration file.
 #define osKernelSysTickFrequency 100000000
- 
+
+#define osSystemCoreFrequency   (216000000)   /* 系统主频 in Hz */
+
 /// Convert a microseconds value to a RTOS kernel system timer value.
 /// \param         microsec     time value in microseconds.
 /// \return time value normalized to the \ref osKernelSysTickFrequency

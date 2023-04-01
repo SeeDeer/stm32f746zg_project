@@ -15,7 +15,7 @@
 
 #include "stm32f7xx_hal_cortex.h"
 
-#include "os.h"
+#include "cmsis_os.h"
 
 #define LD1_GPIO_PIN 		LL_GPIO_PIN_0
 #define LD1_GPIO_PORT 		GPIOB
@@ -44,7 +44,7 @@ static void CPU_CACHE_Enable(void)
 	SCB_EnableDCache();
 }
 
-void Test1_Task_Func(void *p_arg)
+void Test1_Thread(void const *p_arg)
 {
     (void)p_arg;
     OS_ERR os_err;
@@ -56,7 +56,7 @@ void Test1_Task_Func(void *p_arg)
     }
 }
 
-void Test2_Task_Func(void *p_arg)
+void Test2_Thread(void const *p_arg)
 {
     (void)p_arg;
     OS_ERR os_err;
@@ -69,7 +69,7 @@ void Test2_Task_Func(void *p_arg)
     }
 }
 
-void Test3_Task_Func(void *p_arg)
+void Test3_Thread(void const *p_arg)
 {
     (void)p_arg;
     OS_ERR os_err;
@@ -108,7 +108,18 @@ int main(void)
 	Board_Led_Init();
 	LL_GPIO_SetOutputPin(LD1_GPIO_PORT,LD1_GPIO_PIN);
 
-	UCOS_III_Init();
+	osKernelInitialize();
+
+	osThreadDef(Test1_Thread,osPriorityNormal,0,0);
+    osThreadCreate(osThread(Test1_Thread),NULL);
+
+	osThreadDef(Test2_Thread,osPriorityNormal,0,0);
+    osThreadCreate(osThread(Test2_Thread),NULL);
+
+	osThreadDef(Test3_Thread,osPriorityNormal,0,0);
+    osThreadCreate(osThread(Test3_Thread),NULL);
+
+	osKernelStart();
 }
 
 /**

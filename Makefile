@@ -54,6 +54,10 @@ ASM_SOURCES += $(LOCAL_ASM_SOURCES)
 # AS includes
 AS_INCLUDES =
 
+# 添加组件编译参数
+include Middlewares/SEGGER_RTT/local.mk
+# include Middlewares/XXX/local.mk
+
 #######################################
 # binaries
 #######################################
