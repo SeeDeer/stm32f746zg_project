@@ -28,6 +28,21 @@
 #include  <os.h>
 #include  "os_app_hooks.h"
 
+void  App_OS_StatTaskHook (void) __attribute__((weak));     /* 系统状态监控任务钩子函数 */
+void  App_OS_TimeTickHook (void) __attribute__((weak));     /* 系统滴答中断钩子函数(SysTick异常中调用) */
+void  App_OS_TaskSwHook (void) __attribute__((weak));       /* 系统任务切换钩子函数(PendSV异常中调用) */
+void  App_OS_IdleTaskHook (void) __attribute__((weak));     /* 系统空闲任务钩子函数 */
+/* 任务创建钩子函数 */
+void  App_OS_TaskCreateHook(OS_TCB  *p_tcb) __attribute__((weak));
+/* 任务删除钩子函数 */
+void  App_OS_TaskDelHook   (OS_TCB  *p_tcb) __attribute__((weak));
+/* 任务执行退出钩子函数 */
+void  App_OS_TaskReturnHook(OS_TCB  *p_tcb) __attribute__((weak));
+
+/* 任务切换时,检测到堆栈溢出钩子函数 */
+#if (OS_CFG_TASK_STK_REDZONE_EN > 0u)
+void  App_OS_RedzoneHitHook (OS_TCB  *p_tcb) __attribute__((weak));
+#endif
 
 /*
 ************************************************************************************************************************
