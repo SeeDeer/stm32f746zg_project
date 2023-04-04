@@ -42,6 +42,9 @@ C_SOURCES += Drivers/STM32F7xx_HAL_Driver/Src/stm32f7xx_ll_usart.c
 C_SOURCES += $(foreach dir, $(LOCAL_SOURCES_DIRS), $(wildcard $(dir)/*.c))
 C_SOURCES += $(LOCAL_C_SOURCES)
 
+# C sources directory
+C_SOURCES_DIRS =
+
 # C includes
 C_INCLUDES = App/Include
 C_INCLUDES += Drivers/STM32F7xx_HAL_Driver/Inc Drivers/CMSIS/Device/ST/STM32F7xx/Include Drivers/CMSIS/Include
@@ -56,7 +59,9 @@ AS_INCLUDES =
 
 # 添加组件编译参数
 include Middlewares/SEGGER_RTT/local.mk
-# include Middlewares/XXX/local.mk
+include Middlewares/LwIP/local.mk
+
+C_SOURCES += $(foreach dir, $(C_SOURCES_DIRS), $(wildcard $(dir)/*.c))
 
 #######################################
 # binaries
@@ -98,9 +103,7 @@ MCU = $(CPU) -mthumb $(FPU) $(FLOAT-ABI)
 AS_DEFS = 
 
 # C defines
-C_DEFS =  \
--DUSE_FULL_LL_DRIVER \
--DHSE_VALUE=8000000 \
+C_DEFS = -DHSE_VALUE=8000000 \
 -DHSE_STARTUP_TIMEOUT=100 \
 -DLSE_STARTUP_TIMEOUT=5000 \
 -DLSE_VALUE=32768 \
@@ -113,7 +116,9 @@ C_DEFS =  \
 -DSTM32F746xx
 
 C_DEFS += -DUSE_FULL_ASSERT
-
+# 选择LL库还是HAL库
+C_DEFS += -DUSE_FULL_LL_DRIVER
+# C_DEFS += -DUSE_HAL_DRIVER
 
 # compile gcc flags
 ASFLAGS = $(MCU) $(AS_DEFS) $(AS_INCLUDES) $(OPT) -Wall -fdata-sections -ffunction-sections

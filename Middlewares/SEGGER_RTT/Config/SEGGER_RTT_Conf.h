@@ -69,6 +69,9 @@ Revision: $Rev: 24316 $
 **********************************************************************
 */
 
+// #define SEGGER_RTT_MAX_INTERRUPT_PRIORITY   (CPU_CFG_KA_IPL_BOUNDARY << (8u - CPU_CFG_NVIC_PRIO_BITS))
+#define SEGGER_RTT_MAX_INTERRUPT_PRIORITY   (4 << (8u - 4))
+
 //
 // Take in and set to correct values for Cortex-A systems with CPU cache
 //

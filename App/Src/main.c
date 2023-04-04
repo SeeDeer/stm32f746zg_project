@@ -1,6 +1,7 @@
 
 /* Includes ------------------------------------------------------------------*/
 #include <string.h>
+#include <stdio.h>
 
 #include "stm32f7xx_ll_dma.h"
 #include "stm32f7xx_ll_rcc.h"
@@ -16,6 +17,7 @@
 #include "stm32f7xx_hal_cortex.h"
 
 #include "cmsis_os.h"
+#include "SEGGER_RTT.h"
 
 #define LD1_GPIO_PIN 		LL_GPIO_PIN_0
 #define LD1_GPIO_PORT 		GPIOB
@@ -103,6 +105,7 @@ int main(void)
 
 	/* Configure the system clock */
 	SystemClock_Config();
+	SEGGER_RTT_printf(0,"System clock configuration.\r\n");
 
 	/* Initialize all configured peripherals */
 	Board_Led_Init();

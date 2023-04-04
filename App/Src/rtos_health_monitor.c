@@ -3,7 +3,7 @@
  * @author: xxx
  * @brief: xxx
  * @version: 1.0.0
- * @LastEditTime: 2023-04-01 11:06:43
+ * @LastEditTime: 2023-04-04 21:14:57
  * @attention:  1. OSIdleTaskTCB
  *              2. 
  *  top - 15:21:32 up 22:24,  0 users,  load average: 0.00, 0.00, 0.00
@@ -53,21 +53,27 @@ void  App_OS_StatTaskHook (void)
 
         p_tcb = p_tcb->DbgNextPtr;
     }
-    s_print_len = snprintf(&s_print_buf[0],sizeof(s_print_buf),                                     \
-                        "Tasks: %d total, %d Ready %d sleeping %d Suspended\r\n",                   \
+
+    s_print_len = 0;
+
+    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf)-s_print_len,
+                           "Top: %u \r\n",OS_TS_GET());
+    
+    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf)-s_print_len,
+                        "Tasks: %d total, %d Ready %d sleeping %d Suspended\r\n",                  
                         OSTaskQty,readyTaskNum,delayedTaskNum,suspendedTaskNum);
     
-    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf),                          \
-                        "Load Average:%d.%02d(1s)\r\n",                                           \
+    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf)-s_print_len,
+                        "Load Average:%d.%02d(1s)\r\n",
                         OSStatLoadAverage/100,OSStatLoadAverage%100);
     
-    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf),                          \
-                        "CPU: %d.%02d%%(%dms), %d.%02d%%(Max)\r\n",                                 \
-                        OSStatTaskCPUUsage/100,OSStatTaskCPUUsage%100,1000/OSCfg_StatTaskRate_Hz,   \
+    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf)-s_print_len,
+                        "CPU: %d.%02d%%(%dms), %d.%02d%%(Max)\r\n",
+                        OSStatTaskCPUUsage/100,OSStatTaskCPUUsage%100,1000/OSCfg_StatTaskRate_Hz,
                         OSStatTaskCPUUsageMax/100,OSStatTaskCPUUsageMax%100);
     
     
-    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf),"\r\n\r\n");
+    s_print_len += snprintf(&s_print_buf[s_print_len],sizeof(s_print_buf)-s_print_len,"\r\n\r\n");
 
     if ((++print_timer) & 0x04) {
         SEGGER_RTT_Write(0,(const void*)&s_print_buf[0],s_print_len);

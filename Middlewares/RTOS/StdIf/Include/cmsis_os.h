@@ -57,8 +57,8 @@
 /// \note MUST REMAIN UNCHANGED: \b osFeature_xxx shall be consistent in every CMSIS-RTOS.
 #define osFeature_MainThread   1       ///< main thread      1=main can be thread, 0=not available
 #define osFeature_Pool         1       ///< Memory Pools:    1=available, 0=not available
-#define osFeature_MailQ        1       ///< Mail Queues:     1=available, 0=not available
-#define osFeature_MessageQ     1       ///< Message Queues:  1=available, 0=not available
+#define osFeature_MailQ        0       ///< Mail Queues:     1=available, 0=not available
+#define osFeature_MessageQ     0       ///< Message Queues:  1=available, 0=not available
 #define osFeature_Signals      8       ///< maximum number of Signal Flags available per thread
 #define osFeature_Semaphore    30      ///< maximum count for \ref osSemaphoreCreate function
 #define osFeature_Wait         1       ///< osWait function: 1=available, 0=not available
@@ -143,11 +143,11 @@ typedef struct os_timer_cb *osTimerId;
  
 /// Mutex ID identifies the mutex (pointer to a mutex control block).
 /// \note CAN BE CHANGED: \b os_mutex_cb is implementation specific in every CMSIS-RTOS.
-typedef struct os_mutex_cb *osMutexId;
+typedef struct os_mutex *osMutexId;
  
 /// Semaphore ID identifies the semaphore (pointer to a semaphore control block).
 /// \note CAN BE CHANGED: \b os_semaphore_cb is implementation specific in every CMSIS-RTOS.
-typedef struct os_semaphore_cb *osSemaphoreId;
+typedef struct os_sem *osSemaphoreId;
  
 /// Pool ID identifies the memory pool (pointer to a memory pool control block).
 /// \note CAN BE CHANGED: \b os_pool_cb is implementation specific in every CMSIS-RTOS.
@@ -155,7 +155,7 @@ typedef struct os_pool_cb *osPoolId;
  
 /// Message ID identifies the message queue (pointer to a message queue control block).
 /// \note CAN BE CHANGED: \b os_messageQ_cb is implementation specific in every CMSIS-RTOS.
-typedef struct os_messageQ_cb *osMessageQId;
+typedef struct os_q *osMessageQId;
  
 /// Mail ID identifies the mail queue (pointer to a mail queue control block).
 /// \note CAN BE CHANGED: \b os_mailQ_cb is implementation specific in every CMSIS-RTOS.
@@ -179,15 +179,11 @@ typedef struct os_timer_def  {
  
 /// Mutex Definition structure contains setup information for a mutex.
 /// \note CAN BE CHANGED: \b os_mutex_def is implementation specific in every CMSIS-RTOS.
-typedef struct os_mutex_def  {
-  uint32_t                   dummy;    ///< dummy value.
-} osMutexDef_t;
+typedef struct os_mutex osMutexDef_t;
  
 /// Semaphore Definition structure contains setup information for a semaphore.
 /// \note CAN BE CHANGED: \b os_semaphore_def is implementation specific in every CMSIS-RTOS.
-typedef struct os_semaphore_def  {
-  uint32_t                   dummy;    ///< dummy value.
-} osSemaphoreDef_t;
+typedef struct os_sem osSemaphoreDef_t;
  
 /// Definition structure for memory block allocation.
 /// \note CAN BE CHANGED: \b os_pool_def is implementation specific in every CMSIS-RTOS.
@@ -249,22 +245,27 @@ int32_t osKernelRunning(void);
  
 #if (defined (osFeature_SysTick)  &&  (osFeature_SysTick != 0))     // System Timer available
  
-/// Get the RTOS kernel system timer counter 
-/// \note MUST REMAIN UNCHANGED: \b osKernelSysTick shall be consistent in every CMSIS-RTOS.
-/// \return RTOS kernel system timer as 32-bit value 
+/**
+  * @brief  Get the RTOS kernel system timer counter
+  * @retval RTOS kernel system timer as 32-bit value
+  */
 uint32_t osKernelSysTick (void);
  
 /// The RTOS kernel system timer frequency in Hz
 /// \note Reflects the system timer setting and is typically defined in a configuration file.
-#define osKernelSysTickFrequency 100000000
+#define osKernelSysTickFrequency OS_CFG_TICK_RATE_HZ
 
 #define osSystemCoreFrequency   (216000000)   /* 系统主频 in Hz */
 
 /// Convert a microseconds value to a RTOS kernel system timer value.
 /// \param         microsec     time value in microseconds.
 /// \return time value normalized to the \ref osKernelSysTickFrequency
-#define osKernelSysTickMicroSec(microsec) (((uint64_t)microsec * (osKernelSysTickFrequency)) / 1000000)
- 
+#define osKernelSysTickMicroSec(microsec) (((uint32_t)microsec * (osKernelSysTickFrequency)) / 1000)
+
+// Convert a RTOS kernel system timer value to a microseconds.
+#define osKernelMicroSecSysTick(tick) (((uint32_t)1000 * (tick)) / osKernelSysTickFrequency)
+
+
 #endif    // System Timer available
  
 //  ==== Thread Management ====
@@ -431,21 +432,21 @@ osEvent osSignalWait (int32_t signals, uint32_t millisec);
 #define osMutexDef(name)  \
 extern const osMutexDef_t os_mutex_def_##name
 #else                            // define the object
-#define osMutexDef(name)  \
-const osMutexDef_t os_mutex_def_##name = { 0 }
+#define osMutexDef(name)  osMutexDef_t os_mutex_def_##name = { 0 }
 #endif
  
 /// Access a Mutex definition.
 /// \param         name          name of the mutex object.
 /// \note CAN BE CHANGED: The parameter to \b osMutex shall be consistent but the
 ///       macro body is implementation specific in every CMSIS-RTOS.
-#define osMutex(name)  \
-&os_mutex_def_##name
+#define osMutex(name)  &os_mutex_def_##name
  
-/// Create and Initialize a Mutex object.
-/// \param[in]     mutex_def     mutex definition referenced with \ref osMutex.
-/// \return mutex ID for reference by other functions or NULL in case of error.
-/// \note MUST REMAIN UNCHANGED: \b osMutexCreate shall be consistent in every CMSIS-RTOS.
+/**
+ * @brief  Create and Initialize a Mutex object.
+ * @param[in] mutex_def     mutex definition referenced with \ref osMutex.
+ * @retval mutex ID for reference by other functions or NULL in case of error.
+ * @attention 1. mutex_def必须指向全局变量. 不能是局部变量
+ */
 osMutexId osMutexCreate (const osMutexDef_t *mutex_def);
  
 /// Wait until a Mutex becomes available.
@@ -480,22 +481,22 @@ osStatus osMutexDelete (osMutexId mutex_id);
 #define osSemaphoreDef(name)  \
 extern const osSemaphoreDef_t os_semaphore_def_##name
 #else                            // define the object
-#define osSemaphoreDef(name)  \
-const osSemaphoreDef_t os_semaphore_def_##name = { 0 }
+#define osSemaphoreDef(name) osSemaphoreDef_t os_semaphore_def_##name = { 0 }
 #endif
  
 /// Access a Semaphore definition.
 /// \param         name          name of the semaphore object.
 /// \note CAN BE CHANGED: The parameter to \b osSemaphore shall be consistent but the
 ///       macro body is implementation specific in every CMSIS-RTOS.
-#define osSemaphore(name)  \
-&os_semaphore_def_##name
+#define osSemaphore(name) &os_semaphore_def_##name
  
-/// Create and Initialize a Semaphore object used for managing resources.
-/// \param[in]     semaphore_def semaphore definition referenced with \ref osSemaphore.
-/// \param[in]     count         number of available resources.
-/// \return semaphore ID for reference by other functions or NULL in case of error.
-/// \note MUST REMAIN UNCHANGED: \b osSemaphoreCreate shall be consistent in every CMSIS-RTOS.
+/**
+ * @brief  Create and Initialize a Semaphore object used for managing resources.
+ * @param[in] semaphore_def semaphore definition referenced with \ref osSemaphore.
+ * @param[in] count number of available resources.
+ * @retval semaphore ID for reference by other functions or NULL in case of error.
+ * @attention 1. semaphore_def必须指向全局变量. 不能是局部变量
+ */
 osSemaphoreId osSemaphoreCreate (const osSemaphoreDef_t *semaphore_def, int32_t count);
  
 /// Wait until a Semaphore token becomes available.
@@ -597,14 +598,14 @@ const osMessageQDef_t os_messageQ_def_##name = \
 /// \param         name          name of the queue
 /// \note CAN BE CHANGED: The parameter to \b osMessageQ shall be consistent but the
 ///       macro body is implementation specific in every CMSIS-RTOS.
-#define osMessageQ(name) \
-&os_messageQ_def_##name
+#define osMessageQ(name) &os_messageQ_def_##name
  
-/// Create and Initialize a Message Queue.
-/// \param[in]     queue_def     queue definition referenced with \ref osMessageQ.
-/// \param[in]     thread_id     thread ID (obtained by \ref osThreadCreate or \ref osThreadGetId) or NULL.
-/// \return message queue ID for reference by other functions or NULL in case of error.
-/// \note MUST REMAIN UNCHANGED: \b osMessageCreate shall be consistent in every CMSIS-RTOS.
+/**
+ * @brief  Create and Initialize a Message Queue.
+ * @param[in] queue_def     queue definition referenced with \ref osMessageQ.
+ * @param[in] thread_id     resered no use.
+ * @retval message queue ID for reference by other functions or NULL in case of error.
+ */
 osMessageQId osMessageCreate (const osMessageQDef_t *queue_def, osThreadId thread_id);
  
 /// Put a Message to a Queue.
